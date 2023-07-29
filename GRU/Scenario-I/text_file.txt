@@ -1,0 +1,66 @@
+Case1:  all input features(F1, F2, F3, F4) allocated to each recurrent layer 
+
+
+
+
+(X_train.shape[1], 1): (4,1)
+input_shape =(X_train.shape[1], 1)
+input = Input(shape=input_shape)
+
+MSE=mean_squared_error(y_train,trainPredict)= 0.0012552936692696727
+MSE=mean_squared_error(y_val,valPredict)= 0.00025787962057809366
+MSE=mean_squared_error(y_test,testPredict)= 0.003484514813962038
+
+RMSE = (y_train,trainPredict)= 0.04
+RMSE = (y_val,valPredict)= 0.02
+RMSE = (y_test,testPredict)=  0.06
+
+MAE =(y_train,trainPredict)= 0.17
+MAE =(y_val, valPredict)= 0.11
+MAE =(y_test,testPredict)= 0.23
+
+r2_score(y_train, trainPredict)= 0.9810586329000757
+r2_score(y_val, valPredict)= 0.990912487843236
+r2_score(y_test, testPredict)= 0.7843925572838095
+r2_score(combined_data, combined_datap)= 0.9737175503678602
+
+
+
+
+
+
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, GRU, Dense,add, concatenate, Dropout, Reshape,Lambda,Flatten
+
+rnn_1 =GRU(units=11)(input)
+dropout1 = Dropout(rate=0.15)(rnn_1)
+
+rnn_2 = GRU(units=11)(input)
+dropout2 = Dropout(rate=0.15)(rnn_2)
+
+rnn_3 =GRU(units=11)(input)
+dropout3 = Dropout(rate=0.15)(rnn_3)
+
+rnn_4 = GRU(units=11)(input)
+dropout4 = Dropout(rate=0.15)(rnn_4)
+
+
+merged = concatenate([dropout1, dropout2,dropout3, dropout4], axis=1)
+
+dense1 = Dense(units=50, activation='tanh', kernel_regularizer=regularizers.l1(0.001))(merged)
+dense1 = BatchNormalization()(dense1)
+dense2 = Dense(units=25, activation='relu', kernel_regularizer=regularizers.l1(0.001))(dense1)
+dense2 = BatchNormalization()(dense2)
+
+
+# Define the output layer
+output = Dense(units=1, activation='sigmoid')(dense2)
+
+# Create the model with the inputs and output
+model = Model(inputs=[input], outputs=output)
+
+# Compile the model with the desired optimizer, loss function, and metrics
+model.compile(optimizer=optimizer, loss='mse', metrics=['mae'])
+
+# Train the model with the training data
+model.fit([X_train], y_train, epochs=1000, batch_size=25, validation_data=([X_val], y_val), callbacks=[LearningRateLogger()])
