@@ -1,0 +1,86 @@
+Case1:  all input features(F1, F2, F3, F4) allocated to each recurrent layer 
+
+
+
+
+(X_train.shape[1], 1): (4,1)
+input_shape =(X_train.shape[1], 1)
+input = Input(shape=input_shape)
+
+MSE=mean_squared_error(y_train,trainPredict)=0.0015104843298722969
+MSE=mean_squared_error(y_val,valPredict)=0.004285344392334905
+MSE=mean_squared_error(y_test,testPredict)= 0.0047720394251234526
+
+RMSE = (y_train,trainPredict)= 0.04
+RMSE = (y_val,valPredict)=  0.04
+RMSE = (y_test,testPredict)=  0.07
+
+MAE =(y_train,trainPredict)=  0.20
+MAE =(y_val, valPredict)=  0.18
+MAE =(y_test,testPredict)= 0.25
+
+r2_score(y_train, trainPredict)= 0.9719641778912195
+r2_score(y_val, valPredict)= 0.952302283703935
+r2_score(y_test, testPredict)= 0.7047258307328532
+r2_score(combined_data, combined_datap)=0.9595113382985156
+
+
+
+
+
+
+
+
+
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, GRU, Dense,add, concatenate, Dropout, Reshape,Lambda,Flatten
+
+# Define the first parallel recurrent layer with return_sequences=True
+rnn_1 =SimpleRNN(units=11)(input)
+dropout1 = Dropout(rate=0.1)(rnn_1)
+
+
+# Define the second parallel recurrent layer
+rnn_2 = SimpleRNN(units=11)(input)
+dropout2 = Dropout(rate=0.1)(rnn_2)
+
+# Define the third recurrent layer with return_sequences=True
+rnn_3 =SimpleRNN(units=11)(input)
+dropout3 = Dropout(rate=0.1)(rnn_3)
+
+# Define the fourthd parallel recurrent layer
+rnn_4 = SimpleRNN(units=11)(input)
+dropout4 = Dropout(rate=0.1)(rnn_4)
+
+
+
+# Concatenate the outputs of the recurrent layers
+merged = concatenate([dropout1, dropout2,dropout3, dropout4], axis=1)
+
+dense1 = Dense(units=50, activation='tanh', kernel_regularizer=regularizers.l2(0.0001))(merged)
+dense1 = BatchNormalization()(dense1)
+#dense2 = Dense(units=25, activation='relu')(dense1)#, kernel_regularizer=regularizers.l1(0.0001))(dense1)
+# dense2 = BatchNormalization()(dense2)
+
+# Flatten the merged output
+#flatten = Flatten()(merged)
+
+
+# activation =Activation('tanh')(flatten)
+#dense1 = Dense(units=50)(activation)
+#activation2 = Activation('relu')(dense1)
+#dense2 = Dense(units=1)(activation2)
+#activation3 = Activation('sigmoid')(dense2)
+
+
+# Define the output layer
+output = Dense(units=1, activation='sigmoid')(dense1)
+
+# Create the model with the inputs and output
+model = Model(inputs=[input], outputs=output)
+
+# Compile the model with the desired optimizer, loss function, and metrics
+model.compile(optimizer=optimizer, loss='mse', metrics=['mae'])
+
+# Train the model with the training data
+model.fit([X_train], y_train, epochs=1000, batch_size=25, validation_data=(X_val, y_val), callbacks=[LearningRateLogger()])
