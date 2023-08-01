@@ -1,0 +1,75 @@
+Case3: One input feature allocated to each recurrent layer
+		IF1=F1; IF2=F2;
+		IF3=F3; IF4=F4
+
+MSE=mean_squared_error(y_train,trainPredict)=0.0007333655738380121
+MSE=mean_squared_error(y_val,valPredict)=0.0019402030252778518
+MSE=mean_squared_error(y_test,testPredict)=0.0015489637863609197
+
+RMSE = (y_train,trainPredict)=  0.03
+RMSE = (y_val,valPredict)= 0.04
+RMSE = (y_test,testPredict)= 0.04
+
+MAE =(y_train,trainPredict)= 0.14
+MAE =(y_val, valPredict)= 0.18
+MAE =(y_test,testPredict)=0.20
+
+r2_score(y_train, trainPredict)=0.9889341061039572
+r2_score(y_val, valPredict)=0.9454155112862854
+r2_score(y_test, testPredict)=0.8799482180548619
+r2_score(combined_data, combined_datap)= 0.9810968759039028
+
+
+
+
+
+
+
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, GRU, Dense,add,Lambda,Flatten
+
+# Define the first parallel recurrent layer with return_sequences=True
+rnn_1 = SimpleRNN(units=11)(input_1)
+dropout1 = Dropout(rate=0.1)(rnn_1)
+
+# Define the second parallel recurrent layer
+rnn_2 = SimpleRNN(units=11)(input_2)
+dropout2 = Dropout(rate=0.1)(rnn_2)
+
+# Define the third parallel recurrent layer
+rnn_3 = SimpleRNN(units=11)(input_3)
+dropout3 = Dropout(rate=0.1)(rnn_3)
+
+# Define the fourth parallel recurrent layer
+rnn_4 = SimpleRNN(units=11)(input_4)
+dropout4 = Dropout(rate=0.1)(rnn_4)
+
+# Concatenate the outputs of the recurrent layers
+merged = concatenate([dropout1, dropout2, dropout3, dropout4], axis=1)
+
+
+
+# Flatten the merged output
+flatten = Flatten()(merged)
+
+# ...
+activation_layer = Activation('tanh')(flatten)
+dense1 = Dense(units=50, activation='tanh', kernel_regularizer=regularizers.l2(0.0001))(activation_layer)
+dense1 = BatchNormalization()(dense1)
+# dense2 = Dense(units=25, activation='relu', kernel_regularizer=regularizers.l1(0.001))(dense1)
+# dense2 = BatchNormalization()(dense2)
+
+
+
+# Define the output layer
+output = Dense(units=1, activation='sigmoid')(dense1)
+
+
+# Create the model with the inputs and output
+regressor = Model(inputs=[input_1, input_2,input_3, input_4], outputs=output)
+
+# Compile the model with the desired optimizer, loss function, and metrics
+regressor.compile(optimizer=optimizer, loss='mse', metrics=['mae'])
+
+# Train the model with the training data
+result=regressor.fit([X_train1, X_train2,X_train3, X_train4], y_train, epochs=1000, batch_size=25,validation_data=([X_val1, X_val2,X_val3, X_val4], y_val),callbacks=[LearningRateLogger()])
