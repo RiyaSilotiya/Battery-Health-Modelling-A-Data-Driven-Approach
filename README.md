@@ -22,4 +22,4 @@ The outcome of the project was a successfully developed model capable of predict
 ## Acknowledgments
 I would like to express my gratitude to Prof. Swathi Battula for her invaluable guidance and support throughout this project.
 
-Feel free to explore the code and research findings in this repository. If you have any questions or feedback, please don't hesitate to reach out.
+
